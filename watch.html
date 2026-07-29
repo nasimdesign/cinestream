@@ -11,7 +11,11 @@
 <body>
 <nav class="navbar scrolled" id="navbar">
   <a href="index.html" class="nav-logo">
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#g1)"/><path d="M10 9l10 5-10 5V9z" fill="white"/><defs><linearGradient id="g1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#7c6bf0"/><stop offset="1" stop-color="#f05674"/></linearGradient></defs></svg>
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <circle cx="14" cy="14" r="14" fill="url(#gw1)"/>
+      <path d="M11 9.5l8 4.5-8 4.5V9.5z" fill="white"/>
+      <defs><linearGradient id="gw1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#E50914"/><stop offset="1" stop-color="#b81d24"/></linearGradient></defs>
+    </svg>
     CineStream
   </a>
   <ul class="nav-links">
@@ -20,7 +24,11 @@
     <li><a href="search.html?type=tv">TV Shows</a></li>
   </ul>
   <div class="nav-right">
-    <a href="search.html" class="nav-search-btn">🔍</a>
+    <a href="search.html" class="nav-search-btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+    </a>
   </div>
 </nav>
 
@@ -34,12 +42,18 @@
 
   <!-- Server selector -->
   <div class="server-bar" id="serverBar">
-    <span class="server-label">🖥 Server:</span>
+    <span class="server-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+      Server:
+    </span>
   </div>
 
   <!-- TV Season/Episode bar (hidden for movies) -->
   <div class="season-ep-bar" id="seasonBar" style="display:none">
-    <span class="server-label">📺 Season:</span>
+    <span class="server-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><rect x="2" y="7" width="20" height="15" rx="2"/><polyline points="17 2 12 7 7 2"/></svg>
+      Season:
+    </span>
     <select class="select-styled" id="seasonSelect" onchange="onSeasonChange()"></select>
     <span class="server-label" style="margin-left:1rem">Episode:</span>
     <div class="episodes-list" id="episodesList"></div>
@@ -57,7 +71,7 @@
 </div>
 
 <footer>
-  <div class="footer-logo">🎬 CineStream</div>
+  <div class="footer-logo">CineStream</div>
   <p>Movie data by <a href="https://www.themoviedb.org" target="_blank">TMDB</a>. Streams by VidSrc & 2Embed.</p>
 </footer>
 
@@ -90,7 +104,10 @@ function loadPlayer(srcIdx, season, episode) {
 function buildServerBar() {
   const sources = SOURCES[ITEM_TYPE] || SOURCES.movie;
   const bar = document.getElementById('serverBar');
-  bar.innerHTML = `<span class="server-label">🖥 Server:</span>` +
+  bar.innerHTML = `<span class="server-label">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/></svg>
+      Server:
+    </span>` +
     sources.map((s,i) =>
       `<button class="server-btn ${i===0?'active':''}" onclick="loadPlayer(${i},currentSeason,currentEpisode)">
          ${s.name}
@@ -156,15 +173,15 @@ function renderMovieInfo(d) {
     <div class="movie-title-row">
       <h1>${title}</h1>
       <button class="watchlist-btn ${inWL?'added':''}" id="wlBtn" onclick="toggleWatchlist()">
-        ${inWL ? '✓ In Watchlist' : '+ Watchlist'}
+        ${inWL ? '&#10003; In Watchlist' : '+ Watchlist'}
       </button>
     </div>
     <div class="watch-meta">
-      <span class="rating">⭐ ${rating}</span>
-      ${year ? `<span>📅 ${year}</span>` : ''}
-      ${runtime ? `<span>⏱ ${runtime}</span>` : ''}
-      ${d.status ? `<span>🟢 ${d.status}</span>` : ''}
-      ${d.original_language ? `<span>🌐 ${d.original_language.toUpperCase()}</span>` : ''}
+      <span class="rating">&#9733; ${rating}</span>
+      ${year ? `<span>${year}</span>` : ''}
+      ${runtime ? `<span>${runtime}</span>` : ''}
+      ${d.status ? `<span>${d.status}</span>` : ''}
+      ${d.original_language ? `<span>${d.original_language.toUpperCase()}</span>` : ''}
     </div>
     <div class="genres-list">
       ${genres.map(g=>`<span class="genre-tag">${g}</span>`).join('')}
@@ -219,8 +236,12 @@ function cardHTML(item, forcedType) {
   <div class="movie-card" onclick="location.href='watch.html?id=${item.id}&type=${type}'">
     <div class="card-poster">
       <img src="${poster}" alt="${title}" loading="lazy"/>
-      <div class="card-rating">⭐ ${rating}</div>
-      <div class="card-overlay"><div class="card-play-btn">▶</div></div>
+      <div class="card-rating">&#9733; ${rating}</div>
+      <div class="card-overlay">
+        <div class="card-play-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </div>
+      </div>
     </div>
     <div class="card-info">
       <div class="card-title">${title}</div>

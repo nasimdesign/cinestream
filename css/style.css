@@ -1,22 +1,22 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  --bg: #080b14;
-  --bg2: #0e1220;
-  --bg3: #141929;
-  --card: rgba(255,255,255,0.04);
-  --card-hover: rgba(255,255,255,0.08);
-  --border: rgba(255,255,255,0.08);
-  --accent: #7c6bf0;
-  --accent2: #a855f7;
-  --accent3: #f05674;
+  --bg: #141414;
+  --bg2: #181818;
+  --bg3: #202020;
+  --card: rgba(255,255,255,0.06);
+  --card-hover: rgba(255,255,255,0.1);
+  --border: rgba(255,255,255,0.1);
+  --accent: #E50914;
+  --accent2: #b81d24;
+  --accent3: #ff0a16;
   --gold: #f5c518;
-  --text: #f0f0f8;
-  --muted: #7a7a9a;
-  --radius: 12px;
-  --radius-lg: 20px;
-  --shadow: 0 8px 32px rgba(0,0,0,0.5);
-  --transition: 0.25s cubic-bezier(0.4,0,0.2,1);
+  --text: #ffffff;
+  --muted: #aaaaaa;
+  --radius: 4px;
+  --radius-lg: 8px;
+  --shadow: 0 12px 40px rgba(0,0,0,0.8);
+  --transition: 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
   --nav-h: 68px;
 }
 
@@ -49,11 +49,13 @@ input { font-family: inherit; }
   display: flex; align-items: center;
   padding: 0 4vw;
   gap: 2rem;
-  transition: background var(--transition), box-shadow var(--transition);
+  background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 70%, transparent 100%);
+  transition: background 0.4s ease, backdrop-filter 0.4s ease, box-shadow var(--transition);
 }
 .navbar.scrolled {
-  background: rgba(8,11,20,0.95);
-  backdrop-filter: blur(20px);
+  background: rgba(20,20,20,0.97);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   box-shadow: 0 1px 0 var(--border);
 }
 .nav-logo {
@@ -83,13 +85,16 @@ input { font-family: inherit; }
 .nav-links a:hover::after, .nav-links a.active::after { transform: scaleX(1); }
 .nav-right { display: flex; align-items: center; gap: 1rem; margin-left: auto; }
 .nav-search-btn {
-  width: 40px; height: 40px; border-radius: 50%;
-  background: var(--card); border: 1px solid var(--border);
-  color: var(--muted); font-size: 1.1rem;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
+  color: var(--text);
   display: flex; align-items: center; justify-content: center;
   transition: all var(--transition);
 }
-.nav-search-btn:hover { background: var(--card-hover); color: var(--text); }
+.navbar.scrolled .nav-search-btn { background: var(--card); border-color: var(--border); }
+.nav-search-btn:hover { background: var(--accent); border-color: var(--accent); color: #fff; }
+.nav-search-btn svg { width: 18px; height: 18px; }
+.nav-logo svg.icon { display:none; }
 .hamburger { display: none; flex-direction: column; gap: 5px; padding: 6px; }
 .hamburger span { width: 22px; height: 2px; background: var(--text); border-radius: 2px; transition: all var(--transition); }
 
@@ -146,7 +151,9 @@ input { font-family: inherit; }
 }
 .hero-bg::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(to top, var(--bg) 0%, rgba(8,11,20,0.6) 40%, rgba(8,11,20,0.2) 70%, transparent 100%);
+  background:
+    linear-gradient(to top, var(--bg) 0%, rgba(20,20,20,0.7) 35%, rgba(20,20,20,0.15) 65%, transparent 100%),
+    linear-gradient(to right, rgba(20,20,20,0.5) 0%, transparent 60%);
 }
 .hero-content {
   position: relative; z-index: 1;
@@ -155,9 +162,9 @@ input { font-family: inherit; }
 }
 .hero-badge {
   display: inline-flex; align-items: center; gap: 6px;
-  background: rgba(124,107,240,0.2); border: 1px solid rgba(124,107,240,0.4);
+  background: rgba(229,9,20,0.15); border: 1px solid rgba(229,9,20,0.35);
   color: var(--accent); padding: 4px 14px; border-radius: 100px;
-  font-size: 0.8rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
   margin-bottom: 1rem;
 }
 .hero h1 {
@@ -178,21 +185,24 @@ input { font-family: inherit; }
 .hero-btns { display: flex; gap: 1rem; flex-wrap: wrap; }
 .btn-watch {
   display: inline-flex; align-items: center; gap: 10px;
-  padding: 14px 28px;
-  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  padding: 14px 30px;
+  background: var(--accent);
   color: #fff; font-size: 1rem; font-weight: 700;
   border-radius: var(--radius); transition: all var(--transition);
+  border: none;
 }
-.btn-watch:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(124,107,240,0.5); }
+.btn-watch svg { width: 18px; height: 18px; flex-shrink: 0; }
+.btn-watch:hover { transform: translateY(-2px); background: #f40612; box-shadow: 0 8px 28px rgba(229,9,20,0.5); }
 .btn-info {
   display: inline-flex; align-items: center; gap: 10px;
   padding: 14px 28px;
-  background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.15);
+  background: rgba(109,109,110,0.7); backdrop-filter: blur(10px);
+  border: none;
   color: var(--text); font-size: 1rem; font-weight: 600;
   border-radius: var(--radius); transition: all var(--transition);
 }
-.btn-info:hover { background: rgba(255,255,255,0.18); }
+.btn-info svg { width: 18px; height: 18px; flex-shrink: 0; }
+.btn-info:hover { background: rgba(109,109,110,0.9); }
 .hero-dots {
   position: absolute; bottom: 2.5rem; right: 5vw;
   display: flex; gap: 8px; z-index: 1;
@@ -275,11 +285,13 @@ input { font-family: inherit; }
 }
 .card-play-btn {
   width: 44px; height: 44px; border-radius: 50%;
-  background: var(--accent); color: #fff; font-size: 1.1rem;
+  background: rgba(229,9,20,0.9); color: #fff;
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 8px; transition: transform var(--transition);
+  margin: 0 auto 8px; transition: transform var(--transition), background var(--transition);
+  backdrop-filter: blur(4px);
 }
-.card-play-btn:hover { transform: scale(1.1); }
+.card-play-btn svg { width: 18px; height: 18px; margin-left: 2px; }
+.card-play-btn:hover { transform: scale(1.12); background: var(--accent); }
 .card-rating {
   position: absolute; top: 8px; right: 8px;
   background: rgba(0,0,0,0.8); backdrop-filter: blur(4px);

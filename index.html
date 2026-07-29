@@ -14,7 +14,11 @@
 <!-- Navbar -->
 <nav class="navbar" id="navbar">
   <a href="index.html" class="nav-logo">
-    <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#g1)"/><path d="M10 9l10 5-10 5V9z" fill="white"/><defs><linearGradient id="g1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#7c6bf0"/><stop offset="1" stop-color="#f05674"/></linearGradient></defs></svg>
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
+      <circle cx="14" cy="14" r="14" fill="url(#g1)"/>
+      <path d="M11 9.5l8 4.5-8 4.5V9.5z" fill="white"/>
+      <defs><linearGradient id="g1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#E50914"/><stop offset="1" stop-color="#b81d24"/></linearGradient></defs>
+    </svg>
     CineStream
   </a>
   <ul class="nav-links">
@@ -23,7 +27,11 @@
     <li><a href="search.html?type=tv">TV Shows</a></li>
   </ul>
   <div class="nav-right">
-    <a href="search.html" class="nav-search-btn" title="Search">🔍</a>
+    <a href="search.html" class="nav-search-btn" title="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+    </a>
   </div>
 </nav>
 
@@ -31,13 +39,22 @@
 <section class="hero" id="hero">
   <div class="hero-bg" id="heroBg"></div>
   <div class="hero-content" id="heroContent">
-    <div class="hero-badge">🔥 Trending Now</div>
+    <div class="hero-badge" id="heroBadge">
+      <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+      Trending Now
+    </div>
     <h1 id="heroTitle">Loading…</h1>
     <div class="hero-meta" id="heroMeta"></div>
     <p class="hero-overview" id="heroOverview"></p>
     <div class="hero-btns">
-      <a href="#" class="btn-watch" id="heroWatch">▶ Watch Now</a>
-      <a href="#" class="btn-info" id="heroInfo">ℹ More Info</a>
+      <a href="#" class="btn-watch" id="heroWatch">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        Watch Now
+      </a>
+      <a href="#" class="btn-info" id="heroInfo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
+        More Info
+      </a>
     </div>
   </div>
   <div class="hero-dots" id="heroDots"></div>
@@ -124,7 +141,7 @@
 </main>
 
 <footer>
-  <div class="footer-logo">🎬 CineStream</div>
+  <div class="footer-logo">CineStream</div>
   <p>Movie data provided by <a href="https://www.themoviedb.org" target="_blank">TMDB</a>. Streams by VidSrc & 2Embed.</p>
   <p style="margin-top:.5rem;font-size:.8rem">For personal use only. We do not host any content.</p>
 </footer>
@@ -160,10 +177,12 @@ function cardHTML(item) {
   <div class="movie-card" onclick="location.href='watch.html?id=${item.id}&type=${type}'">
     <div class="card-poster">
       <img src="${poster}" alt="${title}" loading="lazy"/>
-      <div class="card-rating">⭐ ${rating}</div>
+      <div class="card-rating">&#9733; ${rating}</div>
       <div class="card-type-badge">${type==='tv'?'TV':'Film'}</div>
       <div class="card-overlay">
-        <div class="card-play-btn">▶</div>
+        <div class="card-play-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </div>
       </div>
     </div>
     <div class="card-info">
@@ -210,7 +229,7 @@ function showHero(idx) {
   bg.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
   document.getElementById('heroTitle').textContent = m.title || m.name;
   document.getElementById('heroMeta').innerHTML =
-    `<span class="rating">⭐ ${m.vote_average?.toFixed(1)}</span>
+    `<span class="rating">&#9733; ${m.vote_average?.toFixed(1)}</span>
      <span>${(m.release_date||'').slice(0,4)}</span>
      ${genres ? `<span>${genres}</span>` : ''}`;
   document.getElementById('heroOverview').textContent = m.overview;

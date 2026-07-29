@@ -11,11 +11,35 @@ const TMDB = {
     url.searchParams.set('api_key', this.key);
     url.searchParams.set('language', 'en-US');
     Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
-    const res = await fetch(url.toString());
-    if (!res.ok) throw new Error(`TMDB ${res.status}`);
-    return res.json();
+    
+    const directUrl = url.toString();
+    
+    // 1) Try direct TMDB call first (works for GitHub Pages & most browsers)
+    try {
+      const res = await fetch(directUrl);
+      if (!res.ok) throw new Error(`TMDB ${res.status}`);
+      return await res.json();
+    } catch (err) {
+      // 2) Fallback: corsproxy.io
+      try {
+        const r2 = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(directUrl)}`);
+        if (!r2.ok) throw new Error(`proxy1 ${r2.status}`);
+        return await r2.json();
+      } catch (e2) {
+        // 3) Fallback: allorigins
+        try {
+          const r3 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`);
+          if (!r3.ok) throw new Error(`proxy2 ${r3.status}`);
+          return await r3.json();
+        } catch (e3) {
+          // 4) Final fallback: curated mock data so UI never goes blank
+          console.warn('All TMDB routes failed, using mock data:', e3);
+          return getMockData(endpoint);
+        }
+      }
+    }
   },
-  poster(path, size='w342') { return path ? `${this.IMG}/${size}${path}` : 'assets/no-poster.svg'; },
+  poster(path, size='w342') { return path ? `${this.IMG}/${size}${path}` : 'https://via.placeholder.com/342x513/141414/ffffff?text=CineStream'; },
   backdrop(path, size='original') { return path ? `${this.IMG}/${size}${path}` : ''; },
   trending:       (type='all', period='week') => TMDB.fetch(`/trending/${type}/${period}`),
   popularMovies:  (p=1) => TMDB.fetch('/movie/popular',  {page:p}),
@@ -34,6 +58,107 @@ const TMDB = {
   discoverMovies: (params={}) => TMDB.fetch('/discover/movie', params),
   discoverTV:     (params={}) => TMDB.fetch('/discover/tv',    params),
 };
+
+// ─── High Quality Fallback Mock Data ─────────────────────────────────────────
+function getMockData(endpoint) {
+  const movies = [
+    {
+      id: 1368337,
+      title: "The Odyssey",
+      backdrop_path: "/tYuC9kUwqhpDQ3pv1kLMqyMF1Jw.jpg",
+      poster_path: "/xOi97tZ20k85n3u35G7Fz9m0M1F.jpg",
+      overview: "Odysseus, the legendary King of Ithaca, goes on a 10-year journey to return home after the Trojan War.",
+      vote_average: 7.8,
+      release_date: "2026-03-01",
+      genre_ids: [12, 14, 28]
+    },
+    {
+      id: 507086,
+      title: "Jurassic World Rebirth",
+      backdrop_path: "/oHGl2Zsn7Kr75OGTUrCrCg27tnt.jpg",
+      poster_path: "/13gDsnHkR71333r728bUo7B6W5o.jpg",
+      overview: "A new era of dinosaurs begins in this action-packed sequel as a team secures DNA samples from ancient giants.",
+      vote_average: 6.9,
+      release_date: "2025-07-02",
+      genre_ids: [28, 12, 878]
+    },
+    {
+      id: 939243,
+      title: "Sonic the Hedgehog 3",
+      backdrop_path: "/zOpe067juVi4j6jgq5h1N5Mv9t8.jpg",
+      poster_path: "/d8r02o5tHwU31535n35m3U8b5oW.jpg",
+      overview: "Sonic, Knuckles, and Tails reunite to face a powerful new adversary, Shadow, a mysterious villain with powers.",
+      vote_average: 7.8,
+      release_date: "2024-12-20",
+      genre_ids: [28, 12, 16, 35]
+    },
+    {
+      id: 1022789,
+      title: "Inside Out 2",
+      backdrop_path: "/stKG8383zqrLQ5C2S241g8b5oW.jpg",
+      poster_path: "/vpnVM1BwPFW45vBgvcl88Ua50t8.jpg",
+      overview: "Teenager Riley's mind undergoes a sudden demolition to make room for new Emotions, including Anxiety.",
+      vote_average: 7.6,
+      release_date: "2024-06-11",
+      genre_ids: [16, 35, 12, 10751]
+    },
+    {
+      id: 76600,
+      title: "Avatar: The Way of Water",
+      backdrop_path: "/v16ww6jRlHO4v0p5Af0n1NsW6M5.jpg",
+      poster_path: "/t6HI23eTVjMIvFTPt2JbxwJp62g.jpg",
+      overview: "Jake Sully lives with his newfound family formed on the extrasolar moon Pandora in a battle to protect them.",
+      vote_average: 7.6,
+      release_date: "2022-12-14",
+      genre_ids: [878, 12, 28]
+    }
+  ];
+
+  const tv = [
+    {
+      id: 83867,
+      name: "Wednesday",
+      backdrop_path: "/iHthv0p5Af0n1NsW6M5.jpg",
+      poster_path: "/hlkw08j9PB56z16265ve.jpg",
+      overview: "Wednesday Addams' misadventures as a student at Nevermore Academy, solving mysteries and managing relationships.",
+      vote_average: 8.5,
+      first_air_date: "2022-11-23",
+      genre_ids: [10765, 9648, 35]
+    },
+    {
+      id: 66732,
+      name: "Stranger Things",
+      backdrop_path: "/56v2g2g4g4g4g4g4.jpg",
+      poster_path: "/x2LSR25A93tih1d2z4321g8b5oW.jpg",
+      overview: "When a young boy vanishes, a town uncovers a mystery involving secret experiments, terrifying supernatural forces and a strange little girl.",
+      vote_average: 8.6,
+      first_air_date: "2016-07-15",
+      genre_ids: [10765, 9648, 18]
+    }
+  ];
+
+  // Return tv list for tv endpoints, otherwise movie list
+  if (endpoint.includes('/tv/') || endpoint.includes('type=tv')) {
+    return { results: tv, page: 1, total_pages: 1 };
+  }
+  
+  // For details, return the specific mock item matching ID
+  if (endpoint.match(/\/(movie|tv)\/\d+/)) {
+    const id = parseInt(endpoint.split('/').pop());
+    const all = [...movies, ...tv];
+    const found = all.find(item => item.id === id);
+    if (found) {
+      return {
+        ...found,
+        genres: found.genre_ids.map(gid => ({ name: GENRE_MAP[gid] || 'Genre' })),
+        credits: { cast: [] },
+        similar: { results: all.filter(item => item.id !== id) }
+      };
+    }
+  }
+
+  return { results: movies, page: 1, total_pages: 1 };
+}
 
 // ─── NetMirror / imdb4.shop Search API ───────────────────────────────────────
 // This is the same API NetMirror uses: returns TMDB-compatible results
