@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Watch – CineStream</title>
+<meta name="description" content="Watch movies and TV shows free online in HD."/>
+<link rel="stylesheet" href="css/style.css"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>"/>
+</head>
+<body>
+<nav class="navbar scrolled" id="navbar">
+  <a href="index.html" class="nav-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#g1)"/><path d="M10 9l10 5-10 5V9z" fill="white"/><defs><linearGradient id="g1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#7c6bf0"/><stop offset="1" stop-color="#f05674"/></linearGradient></defs></svg>
+    CineStream
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="search.html?type=movie">Movies</a></li>
+    <li><a href="search.html?type=tv">TV Shows</a></li>
+  </ul>
+  <div class="nav-right">
+    <a href="search.html" class="nav-search-btn">🔍</a>
+  </div>
+</nav>
+
+<div class="watch-page">
+  <!-- Player area -->
+  <div class="player-section">
+    <div class="player-frame" id="playerFrame">
+      <div style="display:flex;align-items:center;justify-content:center;height:100%;color:var(--muted);font-size:1.2rem">Loading player…</div>
+    </div>
+  </div>
+
+  <!-- Server selector -->
+  <div class="server-bar" id="serverBar">
+    <span class="server-label">🖥 Server:</span>
+  </div>
+
+  <!-- TV Season/Episode bar (hidden for movies) -->
+  <div class="season-ep-bar" id="seasonBar" style="display:none">
+    <span class="server-label">📺 Season:</span>
+    <select class="select-styled" id="seasonSelect" onchange="onSeasonChange()"></select>
+    <span class="server-label" style="margin-left:1rem">Episode:</span>
+    <div class="episodes-list" id="episodesList"></div>
+  </div>
+
+  <!-- Info -->
+  <div class="watch-info">
+    <div class="watch-layout">
+      <div class="movie-main" id="movieMain">
+        <div style="color:var(--muted)">Loading…</div>
+      </div>
+      <div class="movie-sidebar" id="movieSidebar"></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">🎬 CineStream</div>
+  <p>Movie data by <a href="https://www.themoviedb.org" target="_blank">TMDB</a>. Streams by VidSrc & 2Embed.</p>
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+const params  = new URLSearchParams(location.search);
+const ITEM_ID = params.get('id');
+const ITEM_TYPE = params.get('type') || 'movie';
+let currentSrc = 0, currentSeason = 1, currentEpisode = 1, itemData = null;
+
+// ── Player ─────────────────────────────────────────────────────────────────
+function loadPlayer(srcIdx, season, episode) {
+  currentSrc = srcIdx;
+  const sources = SOURCES[ITEM_TYPE] || SOURCES.movie;
+  const src = sources[srcIdx];
+  const url = ITEM_TYPE === 'tv'
+    ? src.url(ITEM_ID, season, episode)
+    : src.url(ITEM_ID);
+  document.getElementById('playerFrame').innerHTML =
+    `<iframe src="${url}"
+       allowfullscreen
+       allow="autoplay; fullscreen; picture-in-picture; encrypted-media"
+       referrerpolicy="origin"
+       style="width:100%;height:100%;border:none;display:block">
+     </iframe>`;
+  document.querySelectorAll('.server-btn').forEach((b,i) => b.classList.toggle('active', i===srcIdx));
+}
+
+function buildServerBar() {
+  const sources = SOURCES[ITEM_TYPE] || SOURCES.movie;
+  const bar = document.getElementById('serverBar');
+  bar.innerHTML = `<span class="server-label">🖥 Server:</span>` +
+    sources.map((s,i) =>
+      `<button class="server-btn ${i===0?'active':''}" onclick="loadPlayer(${i},currentSeason,currentEpisode)">
+         ${s.name}
+       </button>`
+    ).join('');
+}
+
+// ── TV Season/Episode ──────────────────────────────────────────────────────
+async function buildSeasonUI(tvData) {
+  const bar = document.getElementById('seasonBar');
+  const sel = document.getElementById('seasonSelect');
+  bar.style.display = 'flex';
+  const seasons = tvData.seasons.filter(s => s.season_number > 0);
+  sel.innerHTML = seasons.map(s =>
+    `<option value="${s.season_number}">Season ${s.season_number}</option>`
+  ).join('');
+  await loadEpisodes(1);
+}
+
+async function loadEpisodes(season) {
+  currentSeason = season;
+  const el = document.getElementById('episodesList');
+  el.innerHTML = '<span style="color:var(--muted);font-size:.85rem">Loading…</span>';
+  try {
+    const data = await TMDB.tvSeason(ITEM_ID, season);
+    const eps = data.episodes || [];
+    el.innerHTML = eps.map(ep =>
+      `<button class="ep-btn ${ep.episode_number===currentEpisode?'active':''}"
+         onclick="selectEpisode(${ep.episode_number})"
+         title="${ep.name}">
+         Ep ${ep.episode_number}
+       </button>`
+    ).join('');
+  } catch(e) { el.innerHTML = '<span style="color:var(--muted)">Failed to load episodes</span>'; }
+}
+
+function onSeasonChange() {
+  const s = parseInt(document.getElementById('seasonSelect').value);
+  loadEpisodes(s);
+  loadPlayer(currentSrc, s, 1);
+  currentEpisode = 1;
+}
+
+function selectEpisode(ep) {
+  currentEpisode = ep;
+  loadPlayer(currentSrc, currentSeason, ep);
+  document.querySelectorAll('.ep-btn').forEach((b,i) => b.classList.toggle('active', i+1===ep));
+}
+
+// ── Render Info ────────────────────────────────────────────────────────────
+function renderMovieInfo(d) {
+  const title  = d.title || d.name;
+  const year   = (d.release_date || d.first_air_date || '').slice(0,4);
+  const rating = d.vote_average ? d.vote_average.toFixed(1) : 'N/A';
+  const runtime = d.runtime ? formatRuntime(d.runtime) : (d.episode_run_time?.[0] ? formatRuntime(d.episode_run_time[0]) : '');
+  const genres = (d.genres||[]).map(g=>g.name);
+  const cast   = (d.credits?.cast || []).slice(0,12);
+  const similar= (d.similar?.results || []).slice(0,12);
+  const inWL   = isInWatchlist(d.id);
+  document.title = `${title} – CineStream`;
+
+  document.getElementById('movieMain').innerHTML = `
+    <div class="movie-title-row">
+      <h1>${title}</h1>
+      <button class="watchlist-btn ${inWL?'added':''}" id="wlBtn" onclick="toggleWatchlist()">
+        ${inWL ? '✓ In Watchlist' : '+ Watchlist'}
+      </button>
+    </div>
+    <div class="watch-meta">
+      <span class="rating">⭐ ${rating}</span>
+      ${year ? `<span>📅 ${year}</span>` : ''}
+      ${runtime ? `<span>⏱ ${runtime}</span>` : ''}
+      ${d.status ? `<span>🟢 ${d.status}</span>` : ''}
+      ${d.original_language ? `<span>🌐 ${d.original_language.toUpperCase()}</span>` : ''}
+    </div>
+    <div class="genres-list">
+      ${genres.map(g=>`<span class="genre-tag">${g}</span>`).join('')}
+    </div>
+    <p class="overview-text">${d.overview || 'No description available.'}</p>
+    ${cast.length ? `
+    <div class="cast-section">
+      <h3 class="subsection-title">Cast</h3>
+      <div class="cast-grid">
+        ${cast.map(c=>`
+          <div class="cast-card">
+            <img class="cast-avatar" src="${c.profile_path ? 'https://image.tmdb.org/t/p/w185'+c.profile_path : 'https://via.placeholder.com/70x70/141929/7c6bf0?text=?'}" alt="${c.name}" loading="lazy"/>
+            <div class="cast-name">${c.name}</div>
+            <div class="cast-role">${c.character||''}</div>
+          </div>`).join('')}
+      </div>
+    </div>` : ''}
+    ${similar.length ? `
+    <div class="similar-section">
+      <h3 class="subsection-title">More Like This</h3>
+      <div class="similar-grid">
+        ${similar.map(m => cardHTML(m, ITEM_TYPE)).join('')}
+      </div>
+    </div>` : ''}
+  `;
+
+  document.getElementById('movieSidebar').innerHTML = `
+    <div class="sidebar-poster">
+      ${d.poster_path ? `<img src="https://image.tmdb.org/t/p/w500${d.poster_path}" alt="${title}"/>` : ''}
+    </div>
+    <div class="sidebar-info">
+      ${d.vote_count ? `<div class="info-row"><span class="info-label">Votes</span><span class="info-value">${d.vote_count.toLocaleString()}</span></div>` : ''}
+      ${d.budget ? `<div class="info-row"><span class="info-label">Budget</span><span class="info-value">$${(d.budget/1e6).toFixed(0)}M</span></div>` : ''}
+      ${d.revenue ? `<div class="info-row"><span class="info-label">Revenue</span><span class="info-value">$${(d.revenue/1e6).toFixed(0)}M</span></div>` : ''}
+      ${d.production_companies?.[0] ? `<div class="info-row"><span class="info-label">Studio</span><span class="info-value">${d.production_companies[0].name}</span></div>` : ''}
+      ${d.networks?.[0] ? `<div class="info-row"><span class="info-label">Network</span><span class="info-value">${d.networks[0].name}</span></div>` : ''}
+      ${d.number_of_seasons ? `<div class="info-row"><span class="info-label">Seasons</span><span class="info-value">${d.number_of_seasons}</span></div>` : ''}
+      ${d.number_of_episodes ? `<div class="info-row"><span class="info-label">Episodes</span><span class="info-value">${d.number_of_episodes}</span></div>` : ''}
+    </div>
+  `;
+}
+
+function cardHTML(item, forcedType) {
+  const type  = forcedType || item.media_type || (item.title ? 'movie' : 'tv');
+  const title = item.title || item.name || '';
+  const year  = (item.release_date || item.first_air_date || '').slice(0,4);
+  const rating= item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+  const poster= item.poster_path
+    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
+    : `https://via.placeholder.com/160x240/0e1220/7c6bf0?text=${encodeURIComponent(title)}`;
+  return `
+  <div class="movie-card" onclick="location.href='watch.html?id=${item.id}&type=${type}'">
+    <div class="card-poster">
+      <img src="${poster}" alt="${title}" loading="lazy"/>
+      <div class="card-rating">⭐ ${rating}</div>
+      <div class="card-overlay"><div class="card-play-btn">▶</div></div>
+    </div>
+    <div class="card-info">
+      <div class="card-title">${title}</div>
+      <div class="card-year">${year}</div>
+    </div>
+  </div>`;
+}
+
+// ── Watchlist ──────────────────────────────────────────────────────────────
+function toggleWatchlist() {
+  if (!itemData) return;
+  const btn = document.getElementById('wlBtn');
+  if (isInWatchlist(itemData.id)) {
+    removeFromWatchlist(itemData.id);
+    btn.textContent = '+ Watchlist'; btn.classList.remove('added');
+    showToast('Removed from watchlist');
+  } else {
+    addToWatchlist({ id: itemData.id, title: itemData.title||itemData.name, poster_path: itemData.poster_path, media_type: ITEM_TYPE });
+    btn.textContent = '✓ In Watchlist'; btn.classList.add('added');
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+async function init() {
+  if (!ITEM_ID) { location.href = 'index.html'; return; }
+  buildServerBar();
+  loadPlayer(0, 1, 1);
+  try {
+    const d = ITEM_TYPE === 'tv' ? await TMDB.tvDetails(ITEM_ID) : await TMDB.movieDetails(ITEM_ID);
+    itemData = d;
+    renderMovieInfo(d);
+    if (ITEM_TYPE === 'tv' && d.seasons) buildSeasonUI(d);
+  } catch(e) {
+    document.getElementById('movieMain').innerHTML = `<div class="error-state"><h2>Failed to load info</h2><p>${e.message}</p></div>`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', init);
+</script>
+</body>
+</html>

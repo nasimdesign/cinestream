@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Search – CineStream</title>
+<meta name="description" content="Search for movies and TV shows on CineStream."/>
+<link rel="stylesheet" href="css/style.css"/>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>"/>
+</head>
+<body>
+<nav class="navbar scrolled">
+  <a href="index.html" class="nav-logo">
+    <svg width="28" height="28" viewBox="0 0 28 28" fill="none"><circle cx="14" cy="14" r="14" fill="url(#g1)"/><path d="M10 9l10 5-10 5V9z" fill="white"/><defs><linearGradient id="g1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#7c6bf0"/><stop offset="1" stop-color="#f05674"/></linearGradient></defs></svg>
+    CineStream
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="search.html?type=movie">Movies</a></li>
+    <li><a href="search.html?type=tv">TV Shows</a></li>
+  </ul>
+  <div class="nav-right"><a href="search.html" class="nav-search-btn">🔍</a></div>
+</nav>
+
+<div class="search-page">
+  <div class="search-hero">
+    <h1>Search</h1>
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Search movies, TV shows…" autocomplete="off"/>
+      <span class="search-icon">🔍</span>
+    </div>
+  </div>
+  <div class="filter-tabs">
+    <button class="filter-tab" id="tab-all"    onclick="setFilter('all')">All</button>
+    <button class="filter-tab" id="tab-movie"  onclick="setFilter('movie')">Movies</button>
+    <button class="filter-tab" id="tab-tv"     onclick="setFilter('tv')">TV Shows</button>
+  </div>
+  <div class="search-results" id="results"></div>
+  <div style="text-align:center;padding:2rem">
+    <button class="btn-info" id="loadMoreBtn" style="display:none;padding:12px 32px" onclick="loadMore()">Load More</button>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">🎬 CineStream</div>
+  <p>Movie data by <a href="https://www.themoviedb.org" target="_blank">TMDB</a>.</p>
+</footer>
+
+<script src="js/api.js"></script>
+<script src="js/utils.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+let filter = params.get('type') || 'all';
+let query  = params.get('q') || '';
+let page   = 1;
+let totalPages = 1;
+
+function setFilter(f) {
+  filter = f;
+  document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(`tab-${f}`)?.classList.add('active');
+  page = 1;
+  if (query) doSearch(query, true);
+  else loadDefault();
+}
+
+function cardHTML(item) {
+  const type  = filter === 'all' ? (item.media_type || (item.title ? 'movie' : 'tv')) : filter;
+  if (type === 'person') return '';
+  const title = item.title || item.name || '';
+  const year  = (item.release_date || item.first_air_date || '').slice(0,4);
+  const rating= item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
+  const poster= item.poster_path
+    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
+    : `https://via.placeholder.com/160x240/0e1220/7c6bf0?text=${encodeURIComponent(title.slice(0,12))}`;
+  return `
+  <div class="movie-card" onclick="location.href='watch.html?id=${item.id}&type=${type}'">
+    <div class="card-poster">
+      <img src="${poster}" alt="${title}" loading="lazy"/>
+      <div class="card-rating">⭐ ${rating}</div>
+      <div class="card-type-badge">${type==='tv'?'TV':'Film'}</div>
+      <div class="card-overlay"><div class="card-play-btn">▶</div></div>
+    </div>
+    <div class="card-info">
+      <div class="card-title">${title}</div>
+      <div class="card-year">${year}</div>
+    </div>
+  </div>`;
+}
+
+async function doSearch(q, reset = false) {
+  query = q;
+  if (reset) { page = 1; document.getElementById('results').innerHTML = ''; }
+  try {
+    let data;
+    if (filter === 'movie') data = await TMDB.searchMovies(q, page);
+    else if (filter === 'tv') data = await TMDB.searchTV(q, page);
+    else data = await TMDB.searchMulti(q, page);
+    totalPages = data.total_pages || 1;
+    const html = (data.results || []).map(cardHTML).filter(Boolean).join('');
+    if (reset) document.getElementById('results').innerHTML = html || '<div class="empty-state"><h2>No results found</h2><p>Try a different search term.</p></div>';
+    else document.getElementById('results').insertAdjacentHTML('beforeend', html);
+    document.getElementById('loadMoreBtn').style.display = page < totalPages ? 'inline-flex' : 'none';
+    history.replaceState(null,'',`?q=${encodeURIComponent(q)}&type=${filter}`);
+  } catch(e) {
+    document.getElementById('results').innerHTML = `<div class="error-state"><h2>Error</h2><p>${e.message}</p></div>`;
+  }
+}
+
+async function loadDefault() {
+  const el = document.getElementById('results');
+  el.innerHTML = Array(16).fill('<div class="card-skeleton" style="aspect-ratio:2/3"></div>').join('');
+  try {
+    let data;
+    if (filter === 'tv') data = await TMDB.popularTV(page);
+    else data = await TMDB.popularMovies(page);
+    totalPages = data.total_pages || 1;
+    el.innerHTML = (data.results||[]).map(cardHTML).join('');
+    document.getElementById('loadMoreBtn').style.display = page < totalPages ? 'inline-flex' : 'none';
+  } catch(e) { el.innerHTML = `<div class="error-state"><h2>Failed to load</h2><p>${e.message}</p></div>`; }
+}
+
+function loadMore() {
+  page++;
+  if (query) doSearch(query, false);
+  else loadDefault();
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  setFilter(filter);
+  const input = document.getElementById('searchInput');
+  if (query) { input.value = query; doSearch(query, true); }
+  else loadDefault();
+
+  let debounce;
+  input.addEventListener('input', () => {
+    clearTimeout(debounce);
+    const q = input.value.trim();
+    if (q.length > 2) debounce = setTimeout(() => doSearch(q, true), 400);
+    else if (!q) { page=1; loadDefault(); }
+  });
+  input.addEventListener('keypress', e => {
+    if (e.key === 'Enter') { clearTimeout(debounce); doSearch(input.value.trim(), true); }
+  });
+});
+</script>
+</body>
+</html>
