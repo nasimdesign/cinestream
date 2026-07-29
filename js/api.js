@@ -7,39 +7,74 @@ const TMDB = {
   IMG: 'https://image.tmdb.org/t/p',
   get key() { return '15d2ea6d0dc1d476efbca3eba2b9bbfb'; },
   async fetch(endpoint, params = {}) {
-    const url = new URL(`${this.BASE}${endpoint}`);
-    url.searchParams.set('api_key', this.key);
-    url.searchParams.set('language', 'en-US');
-    Object.entries(params).forEach(([k, v]) => url.searchParams.set(k, v));
+    const key = this.key;
+    const lang = 'en-US';
     
-    const directUrl = url.toString();
-    
-    // 1) Try direct TMDB call first (works for GitHub Pages & most browsers)
-    try {
-      const res = await fetch(directUrl);
-      if (!res.ok) throw new Error(`TMDB ${res.status}`);
-      return await res.json();
-    } catch (err) {
-      // 2) Fallback: corsproxy.io
+    const makeUrl = (base) => {
+      const u = new URL(`${base}${endpoint}`);
+      u.searchParams.set('api_key', key);
+      u.searchParams.set('language', lang);
+      Object.entries(params).forEach(([k, v]) => u.searchParams.set(k, v));
+      return u.toString();
+    };
+
+    const primaryUrl = makeUrl('https://api.themoviedb.org/3');
+    const backupUrl = makeUrl('https://api.tmdb.org/3');
+
+    // Helper for timeout
+    const fetchWithTimeout = async (url, options = {}, timeoutMs = 2500) => {
+      const controller = new AbortController();
+      const id = setTimeout(() => controller.abort(), timeoutMs);
       try {
-        const r2 = await fetch(`https://corsproxy.io/?url=${encodeURIComponent(directUrl)}`);
-        if (!r2.ok) throw new Error(`proxy1 ${r2.status}`);
-        return await r2.json();
+        const response = await fetch(url, { ...options, signal: controller.signal });
+        clearTimeout(id);
+        return response;
+      } catch (error) {
+        clearTimeout(id);
+        throw error;
+      }
+    };
+
+    // 1) Try Primary TMDB Domain (api.themoviedb.org) - 2.5s timeout
+    try {
+      const res = await fetchWithTimeout(primaryUrl, {}, 2500);
+      if (!res.ok) throw new Error(`Primary status ${res.status}`);
+      return await res.json();
+    } catch (e1) {
+      console.warn("Primary TMDB domain failed/timed out, trying backup domain...", e1);
+      
+      // 2) Try Backup TMDB Domain (api.tmdb.org) - 2.5s timeout
+      try {
+        const res = await fetchWithTimeout(backupUrl, {}, 2500);
+        if (!res.ok) throw new Error(`Backup status ${res.status}`);
+        return await res.json();
       } catch (e2) {
-        // 3) Fallback: allorigins
+        console.warn("Backup TMDB domain failed/timed out, trying CORS proxy fallback...", e2);
+        
+        // 3) Try a highly reliable fallback: allorigins.win - 3.5s timeout
         try {
-          const r3 = await fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(directUrl)}`);
-          if (!r3.ok) throw new Error(`proxy2 ${r3.status}`);
-          return await r3.json();
+          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(primaryUrl)}`;
+          const res = await fetchWithTimeout(proxyUrl, {}, 3500);
+          if (!res.ok) throw new Error(`AllOrigins status ${res.status}`);
+          return await res.json();
         } catch (e3) {
-          // 4) Final fallback: curated mock data so UI never goes blank
-          console.warn('All TMDB routes failed, using mock data:', e3);
-          return getMockData(endpoint);
+          console.warn("AllOrigins proxy failed/timed out, trying backup proxy...", e3);
+          
+          // 4) Try another public proxy: codetabs CORS proxy (cors-anywhere alternative)
+          try {
+            const proxyUrl = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(primaryUrl)}`;
+            const res = await fetchWithTimeout(proxyUrl, {}, 3500);
+            if (!res.ok) throw new Error(`Codetabs status ${res.status}`);
+            return await res.json();
+          } catch (e4) {
+            console.error("All TMDB API and proxy routes failed. Loading high-quality mock data...", e4);
+            return getMockData(endpoint);
+          }
         }
       }
     }
   },
-  poster(path, size='w342') { return path ? `${this.IMG}/${size}${path}` : 'https://via.placeholder.com/342x513/141414/ffffff?text=CineStream'; },
+  poster(path, size='w342') { return path ? `${this.IMG}/${size}${path}` : 'https://via.placeholder.com/342x513/141414/ffffff?text=Naxtream'; },
   backdrop(path, size='original') { return path ? `${this.IMG}/${size}${path}` : ''; },
   trending:       (type='all', period='week') => TMDB.fetch(`/trending/${type}/${period}`),
   popularMovies:  (p=1) => TMDB.fetch('/movie/popular',  {page:p}),
@@ -182,6 +217,8 @@ const IMDB4 = {
 const SOURCES = {
   movie: [
     { name: 'VidSrc Pro',  url: (id) => `https://vidsrc.to/embed/movie/${id}` },
+    { name: 'VidSrc.xyz',  url: (id) => `https://vidsrc.xyz/embed/movie?tmdb=${id}` },
+    { name: 'SmashyStream',url: (id) => `https://embed.smashystream.com/playere.php?tmdb=${id}` },
     { name: 'VidSrc.me',   url: (id) => `https://vidsrc.me/embed/movie?tmdb=${id}` },
     { name: 'AutoEmbed',   url: (id) => `https://autoembed.co/movie/tmdb/${id}` },
     { name: 'VidLink',     url: (id) => `https://vidlink.pro/movie/${id}` },
@@ -191,6 +228,8 @@ const SOURCES = {
   ],
   tv: [
     { name: 'VidSrc Pro',  url: (id,s,e) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}` },
+    { name: 'VidSrc.xyz',  url: (id,s,e) => `https://vidsrc.xyz/embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
+    { name: 'SmashyStream',url: (id,s,e) => `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${s}&episode=${e}` },
     { name: 'VidSrc.me',   url: (id,s,e) => `https://vidsrc.me/embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
     { name: 'AutoEmbed',   url: (id,s,e) => `https://autoembed.co/tv/tmdb/${id}-${s}-${e}` },
     { name: 'VidLink',     url: (id,s,e) => `https://vidlink.pro/tv/${id}/${s}/${e}` },

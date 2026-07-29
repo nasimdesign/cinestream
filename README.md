@@ -1,4 +1,4 @@
-# 🎬 CineStream
+# 🎬 Naxtream
 
 A free, open-source movie & TV streaming site with a premium dark UI. Built to fix the **"Iframe Sandbox Detected"** error from the original CinePlay site.
 
@@ -6,7 +6,7 @@ A free, open-source movie & TV streaming site with a premium dark UI. Built to f
 > Deploy via GitHub Pages — see setup below.
 
 ## ✨ Features
-- 🎥 **Watch Movies & TV Shows** — powered by VidSrc, 2Embed & more (no sandbox errors!)
+- 🎥 **Watch Movies & TV Shows** — powered by VidSrc, SmashyStream, 2Embed & more (no sandbox errors!)
 - 🔍 **Search** — find anything with live search
 - 📺 **TV Show Support** — browse seasons and episodes
 - ⭐ **Watchlist** — save titles locally
@@ -26,8 +26,8 @@ Open `index.html` in your browser. On first visit, paste your TMDB API key in th
 
 ### 3. Deploy to GitHub Pages
 ```bash
-git clone https://github.com/YOUR_USERNAME/cinestream
-cd cinestream
+git clone https://github.com/YOUR_USERNAME/naxtream
+cd naxtream
 # Enable GitHub Pages from repo Settings → Pages → Deploy from branch (main, / root)
 ```
 
@@ -38,25 +38,27 @@ The original CinePlay site uses **CinemaOS Player** embedded in an `<iframe>` wi
 **Their error:**
 > *Iframe Sandbox Detected — This embed's iframe has sandbox restrictions that block CinemaOS Player from functioning correctly.*
 
-**Our fix:** We use **VidSrc.to** and **2Embed.cc** — these players work perfectly inside iframes with just `allowfullscreen` and `allow="autoplay; fullscreen"`. No sandbox attribute needed.
+**Our fix:** We use **VidSrc.to**, **VidSrc.xyz**, **SmashyStream**, and **2Embed.cc** — these players work perfectly inside iframes with just `allowfullscreen` and `allow="autoplay; fullscreen"`. No sandbox attribute needed.
 
 ## 📁 Project Structure
 ```
-cinestream/
+naxtream/
 ├── index.html      # Homepage with hero + content rows
 ├── watch.html      # Watch page with player + info
 ├── search.html     # Search & browse page
 ├── css/
-│   └── style.css   # Complete design system
-└── js/
-    ├── api.js      # TMDB API wrapper + embed sources
-    └── utils.js    # Utilities, watchlist, helpers
+50: │   └── style.css   # Complete design system
+51: └── js/
+52:     ├── api.js      # TMDB API wrapper + embed sources
+53:     └── utils.js    # Utilities, watchlist, helpers
 ```
 
 ## 🎬 Video Sources Used
 | Source | Movie | TV |
 |--------|-------|-----|
 | VidSrc Pro | `vidsrc.to/embed/movie/{id}` | `vidsrc.to/embed/tv/{id}/{s}/{e}` |
+| VidSrc.xyz | `vidsrc.xyz/embed/movie?tmdb={id}` | `vidsrc.xyz/embed/tv?tmdb={id}&season={s}&episode={e}` |
+| SmashyStream | `embed.smashystream.com/playere.php?tmdb={id}` | `embed.smashystream.com/playere.php?tmdb={id}&season={s}&episode={e}` |
 | VidSrc.me  | `vidsrc.me/embed/movie?tmdb={id}` | `vidsrc.me/embed/tv?tmdb={id}&season={s}&episode={e}` |
 | 2Embed     | `2embed.cc/embed/{id}` | `2embed.cc/embedtv/{id}&s={s}&e={e}` |
 | MultiEmbed | `multiembed.mov/?video_id={id}&tmdb=1` | — |

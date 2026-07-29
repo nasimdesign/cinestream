@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>Search – CineStream</title>
-<meta name="description" content="Search for movies and TV shows on CineStream."/>
+<title>Search – Naxtream</title>
+<meta name="description" content="Search for movies and TV shows on Naxtream."/>
 <link rel="stylesheet" href="css/style.css"/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>"/>
 </head>
@@ -16,7 +16,7 @@
       <path d="M11 9.5l8 4.5-8 4.5V9.5z" fill="white"/>
       <defs><linearGradient id="gs1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#E50914"/><stop offset="1" stop-color="#b81d24"/></linearGradient></defs>
     </svg>
-    CineStream
+    Naxtream
   </a>
   <ul class="nav-links">
     <li><a href="index.html">Home</a></li>
@@ -56,7 +56,7 @@
 </div>
 
 <footer>
-  <div class="footer-logo">CineStream</div>
+  <div class="footer-logo">Naxtream</div>
   <p>Movie data by <a href="https://www.themoviedb.org" target="_blank">TMDB</a>.</p>
 </footer>
 
@@ -78,34 +78,6 @@ function setFilter(f) {
   else loadDefault();
 }
 
-function cardHTML(item) {
-  const type  = filter === 'all' ? (item.media_type || (item.title ? 'movie' : 'tv')) : filter;
-  if (type === 'person') return '';
-  const title = item.title || item.name || '';
-  const year  = (item.release_date || item.first_air_date || '').slice(0,4);
-  const rating= item.vote_average ? item.vote_average.toFixed(1) : 'N/A';
-  const poster= item.poster_path
-    ? `https://image.tmdb.org/t/p/w342${item.poster_path}`
-    : `https://via.placeholder.com/160x240/0e1220/7c6bf0?text=${encodeURIComponent(title.slice(0,12))}`;
-  return `
-  <div class="movie-card" onclick="location.href='watch.html?id=${item.id}&type=${type}'">
-    <div class="card-poster">
-      <img src="${poster}" alt="${title}" loading="lazy"/>
-      <div class="card-rating">&#9733; ${rating}</div>
-      <div class="card-type-badge">${type==='tv'?'TV':'Film'}</div>
-      <div class="card-overlay">
-        <div class="card-play-btn">
-          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        </div>
-      </div>
-    </div>
-    <div class="card-info">
-      <div class="card-title">${title}</div>
-      <div class="card-year">${year}</div>
-    </div>
-  </div>`;
-}
-
 async function doSearch(q, reset = false) {
   query = q;
   if (reset) { page = 1; document.getElementById('results').innerHTML = ''; }
@@ -115,7 +87,7 @@ async function doSearch(q, reset = false) {
     else if (filter === 'tv') data = await TMDB.searchTV(q, page);
     else data = await TMDB.searchMulti(q, page);
     totalPages = data.total_pages || 1;
-    const html = (data.results || []).map(cardHTML).filter(Boolean).join('');
+    const html = (data.results || []).map(item => cardHTML(item, filter !== 'all' ? filter : null)).filter(Boolean).join('');
     if (reset) document.getElementById('results').innerHTML = html || '<div class="empty-state"><h2>No results found</h2><p>Try a different search term.</p></div>';
     else document.getElementById('results').insertAdjacentHTML('beforeend', html);
     document.getElementById('loadMoreBtn').style.display = page < totalPages ? 'inline-flex' : 'none';
@@ -133,7 +105,7 @@ async function loadDefault() {
     if (filter === 'tv') data = await TMDB.popularTV(page);
     else data = await TMDB.popularMovies(page);
     totalPages = data.total_pages || 1;
-    el.innerHTML = (data.results||[]).map(cardHTML).join('');
+    el.innerHTML = (data.results||[]).map(item => cardHTML(item, filter !== 'all' ? filter : null)).filter(Boolean).join('');
     document.getElementById('loadMoreBtn').style.display = page < totalPages ? 'inline-flex' : 'none';
   } catch(e) { el.innerHTML = `<div class="error-state"><h2>Failed to load</h2><p>${e.message}</p></div>`; }
 }

@@ -1,5 +1,4 @@
-// ─── CineStream Configuration ────────────────────────────────────────────────
-// Get your FREE TMDB API key at: https://www.themoviedb.org/settings/api
+// ─── Naxtream Configuration ────────────────────────────────────────────────
 
 const CONFIG = {
   TMDB_API_KEY: '15d2ea6d0dc1d476efbca3eba2b9bbfb',
