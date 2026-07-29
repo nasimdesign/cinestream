@@ -10,18 +10,6 @@
 </head>
 <body>
 
-<!-- Setup Screen -->
-<div class="setup-screen" id="setupScreen">
-  <div class="setup-card">
-    <div class="logo-big">🎬 CineStream</div>
-    <h2 style="font-size:1.3rem;margin-top:.5rem">One-time Setup</h2>
-    <p>Enter your free TMDB API key to load movies and TV shows.<br/>
-    Get a free key at <a href="https://www.themoviedb.org/settings/api" target="_blank">themoviedb.org</a> (takes 1 minute).</p>
-    <input class="setup-input" id="apiKeyInput" type="text" placeholder="Paste your TMDB API key here…"/>
-    <button class="btn-primary" onclick="submitApiKey()">Start Watching →</button>
-    <p class="setup-note">Your key is stored locally on your device only.</p>
-  </div>
-</div>
 
 <!-- Navbar -->
 <nav class="navbar" id="navbar">
@@ -145,17 +133,9 @@
 <script src="js/utils.js"></script>
 <script>
 // ── Setup ──────────────────────────────────────────────────────────────────
-function submitApiKey() {
-  const key = document.getElementById('apiKeyInput').value.trim();
-  if (!key || key.length < 10) { showToast('Please enter a valid API key', 'error'); return; }
-  localStorage.setItem('cs_api_key', key);
-  document.getElementById('setupScreen').style.display = 'none';
-  initHome();
-}
 document.addEventListener('DOMContentLoaded', () => {
-  const key = localStorage.getItem('cs_api_key');
-  if (key) { document.getElementById('setupScreen').style.display = 'none'; initHome(); }
-  document.getElementById('apiKeyInput').addEventListener('keypress', e => { if(e.key==='Enter') submitApiKey(); });
+  initHome();
+
   window.addEventListener('scroll', () => {
     document.getElementById('navbar').classList.toggle('scrolled', window.scrollY > 20);
   });

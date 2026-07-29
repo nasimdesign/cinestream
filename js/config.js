@@ -2,7 +2,7 @@
 // Get your FREE TMDB API key at: https://www.themoviedb.org/settings/api
 
 const CONFIG = {
-  TMDB_API_KEY: localStorage.getItem('cs_api_key') || '',
+  TMDB_API_KEY: '15d2ea6d0dc1d476efbca3eba2b9bbfb',
   TMDB_BASE_URL: 'https://api.themoviedb.org/3',
   TMDB_IMG_BASE: 'https://image.tmdb.org/t/p/',
   TMDB_IMG_W500: 'https://image.tmdb.org/t/p/w500',
@@ -55,12 +55,6 @@ const CONFIG = {
   ],
 };
 
-// Save API key to localStorage
-function saveApiKey(key) {
-  CONFIG.TMDB_API_KEY = key;
-  localStorage.setItem('cs_api_key', key);
-}
-
 function hasApiKey() {
-  return CONFIG.TMDB_API_KEY && CONFIG.TMDB_API_KEY.length > 0;
+  return true;
 }
