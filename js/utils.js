@@ -523,8 +523,85 @@ function renderLibrarySections() {
 // Auto-init once DOM is ready
 (function() {
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initLibraryDrawer);
+    document.addEventListener('DOMContentLoaded', () => {
+      initLibraryDrawer();
+      initTermsPopup();
+    });
   } else {
     initLibraryDrawer();
+    initTermsPopup();
   }
 })();
+
+// ─── Terms and Conditions Popup ─────────────────────────────────────────────
+function initTermsPopup() {
+  if (localStorage.getItem('naxtream_tos_agreed') === 'true') return;
+
+  const style = document.createElement('style');
+  style.textContent = `
+    .tos-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999;
+      display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px);
+    }
+    .tos-modal {
+      background: #0e1220; border: 1px solid rgba(255,255,255,0.1); border-radius: 16px;
+      width: 90%; max-width: 480px; padding: 32px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+      text-align: center; color: #fff;
+    }
+    .tos-logo svg { margin-bottom: 16px; }
+    .tos-title { font-size: 1.4rem; font-weight: 700; margin-bottom: 12px; }
+    .tos-text { font-size: 0.95rem; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 24px; text-align: left; }
+    .tos-checkbox-wrapper { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 24px; text-align: left; cursor: pointer; }
+    .tos-checkbox-wrapper input { width: 18px; height: 18px; accent-color: #E50914; margin-top: 2px; cursor: pointer; }
+    .tos-checkbox-label { font-size: 0.9rem; color: rgba(255,255,255,0.8); }
+    .tos-btn {
+      background: #E50914; color: #fff; border: none; border-radius: 8px; width: 100%;
+      padding: 14px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.2s;
+    }
+    .tos-btn:hover { background: #b81d24; }
+    .tos-btn:disabled { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.3); cursor: not-allowed; }
+  `;
+  document.head.appendChild(style);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'tos-overlay';
+  overlay.id = 'tosOverlay';
+  
+  overlay.innerHTML = `
+    <div class="tos-modal">
+      <div class="tos-logo">
+        <svg width="48" height="48" viewBox="0 0 28 28" fill="none">
+          <circle cx="14" cy="14" r="14" fill="url(#tosg1)"/>
+          <path d="M11 9.5l8 4.5-8 4.5V9.5z" fill="white"/>
+          <defs><linearGradient id="tosg1" x1="0" y1="0" x2="28" y2="28"><stop stop-color="#E50914"/><stop offset="1" stop-color="#b81d24"/></linearGradient></defs>
+        </svg>
+      </div>
+      <h2 class="tos-title">Welcome to Naxtream</h2>
+      <div class="tos-text">
+        <p>Naxtream is a search engine that links to third-party streaming services. We do not host any files or media on our own servers.</p>
+        <p style="margin-top: 12px;">By proceeding, the TMDB Data API will automatically be configured in the background to provide movie and TV show metadata. You do not need to manually configure your API key (v3 auth) in settings; everything will be handled securely in the background.</p>
+      </div>
+      <label class="tos-checkbox-wrapper">
+        <input type="checkbox" id="tosCheckbox">
+        <span class="tos-checkbox-label">I have read and agree to the Terms and Conditions, and I understand that Naxtream does not host any content.</span>
+      </label>
+      <button class="tos-btn" id="tosBtn" disabled>Agree and Continue</button>
+    </div>
+  `;
+  
+  document.body.appendChild(overlay);
+  document.body.style.overflow = 'hidden';
+
+  const checkbox = document.getElementById('tosCheckbox');
+  const btn = document.getElementById('tosBtn');
+
+  checkbox.addEventListener('change', () => {
+    btn.disabled = !checkbox.checked;
+  });
+
+  btn.addEventListener('click', () => {
+    localStorage.setItem('naxtream_tos_agreed', 'true');
+    overlay.remove();
+    document.body.style.overflow = '';
+  });
+}
