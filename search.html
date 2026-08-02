@@ -123,6 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
   if (query) { input.value = query; doSearch(query, true); }
   else loadDefault();
 
+  // Auto-focus search bar immediately (good UX: nav search icon → cursor ready)
+  setTimeout(() => input.focus(), 50);
+
   let debounce;
   input.addEventListener('input', () => {
     clearTimeout(debounce);
