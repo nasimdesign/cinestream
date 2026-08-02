@@ -109,8 +109,8 @@ function buildServerBar() {
       Server:
     </span>` +
     sources.map((s,i) =>
-      `<button class="server-btn ${i===0?'active':''}" onclick="loadPlayer(${i},currentSeason,currentEpisode)">
-         ${s.name}
+      `<button class="server-btn ${i===0?'active':''}" onclick="loadPlayer(${i},currentSeason,currentEpisode)" title="${s.name}">
+         Server ${i+1}
        </button>`
     ).join('');
 }
