@@ -43,6 +43,7 @@
       <svg viewBox="0 0 24 24" fill="currentColor" width="12" height="12"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
       Trending Now
     </div>
+    <img id="heroLogo" class="hero-logo-img" src="" alt="Logo" style="display:none">
     <h1 id="heroTitle">Loading…</h1>
     <div class="hero-meta" id="heroMeta"></div>
     <p class="hero-overview" id="heroOverview"></p>
@@ -51,6 +52,9 @@
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         Watch Now
       </a>
+      <button class="btn-add-list" id="heroAddList" title="Add to My List">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
+      </button>
       <a href="#" class="btn-info" id="heroInfo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
         More Info
@@ -278,26 +282,51 @@ function renderHeroDots() {
     `<div class="hero-dot ${i===0?'active':''}" onclick="showHero(${i})"></div>`
   ).join('');
 }
-function showHero(idx) {
+async function showHero(idx) {
   heroIdx = idx;
   const m = heroItems[idx];
   const bg = document.getElementById('heroBg');
+  const titleEl = document.getElementById('heroTitle');
+  const logoEl = document.getElementById('heroLogo');
   const genres = (m.genre_ids||[]).slice(0,3).map(id => GENRE_MAP[id]).filter(Boolean).join(' · ');
+  
   bg.style.backgroundImage = `url(https://image.tmdb.org/t/p/original${m.backdrop_path})`;
-  document.getElementById('heroTitle').textContent = m.title || m.name;
+  
+  // Fetch logo dynamically
+  titleEl.style.display = 'block';
+  logoEl.style.display = 'none';
+  titleEl.textContent = m.title || m.name;
+  
+  try {
+    const type = m.media_type || (m.name ? 'tv' : 'movie');
+    const imgs = await fetch(`https://api.themoviedb.org/3/${type}/${m.id}/images?api_key=${TMDB.apiKey}&include_image_language=en,null`).then(r => r.json());
+    if (imgs && imgs.logos && imgs.logos.length > 0) {
+      logoEl.src = `https://image.tmdb.org/t/p/w500${imgs.logos[0].file_path}`;
+      logoEl.style.display = 'block';
+      titleEl.style.display = 'none';
+    }
+  } catch(e) {}
+
   document.getElementById('heroMeta').innerHTML =
     `<span class="rating">&#9733; ${m.vote_average?.toFixed(1)}</span>
-     <span>${(m.release_date||'').slice(0,4)}</span>
+     <span>${(m.release_date||m.first_air_date||'').slice(0,4)}</span>
      ${genres ? `<span>${genres}</span>` : ''}`;
   document.getElementById('heroOverview').textContent = m.overview;
   
   // Play directly when clicking Watch Now
-  document.getElementById('heroWatch').href = `watch.html?id=${m.id}&type=movie`;
+  document.getElementById('heroWatch').href = `watch.html?id=${m.id}&type=${m.media_type || (m.name ? 'tv' : 'movie')}`;
   
   // Open details modal when clicking More Info
   document.getElementById('heroInfo').onclick = (e) => {
     e.preventDefault();
-    openInfoModal(m.id, 'movie');
+    openInfoModal(m.id, m.media_type || (m.name ? 'tv' : 'movie'));
+  };
+
+  // Add to watchlist button functionality
+  const addBtn = document.getElementById('heroAddList');
+  addBtn.onclick = (e) => {
+    e.preventDefault();
+    addToWatchlist(m);
   };
   
   document.querySelectorAll('.hero-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
