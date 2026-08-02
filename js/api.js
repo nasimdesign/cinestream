@@ -210,30 +210,24 @@ const IMDB4 = {
   }
 };
 
-// ─── Embed Sources (NO sandbox restrictions!) ─────────────────────────────────
-// These all work in iframes without sandbox attributes
-// The original CinePlay site has sandbox on the iframe — that breaks CinemaOS Player
-// Our sources don't need sandbox at all
+// ─── Embed Sources (Verified & Active High-Availability Players) ────────────
 const SOURCES = {
   movie: [
     { name: 'VidSrc Pro',  url: (id) => `https://vidsrc.to/embed/movie/${id}` },
-    { name: 'VidSrc.xyz',  url: (id) => `https://vidsrc.xyz/embed/movie?tmdb=${id}` },
-    { name: 'SmashyStream',url: (id) => `https://embed.smashystream.com/playere.php?tmdb=${id}` },
-    { name: 'VidSrc.me',   url: (id) => `https://vidsrc.me/embed/movie?tmdb=${id}` },
+    { name: 'VidSrc.me',   url: (id) => `https://vidsrcme.ru/embed/movie?tmdb=${id}` },
+    { name: 'VidSrc.pm',   url: (id) => `https://vidsrc.pm/embed/movie/${id}` },
     { name: 'AutoEmbed',   url: (id) => `https://autoembed.co/movie/tmdb/${id}` },
     { name: 'VidLink',     url: (id) => `https://vidlink.pro/movie/${id}` },
     { name: '2Embed',      url: (id) => `https://www.2embed.cc/embed/${id}` },
-    { name: 'EmbedSu',     url: (id) => `https://embed.su/embed/movie/${id}` },
-    { name: 'MultiEmbed',  url: (id) => `https://multiembed.mov/?video_id=${id}&tmdb=1` },
+    { name: 'AnyEmbed',    url: (id) => `https://anyembed.xyz/embed/tmdb-movie-${id}` },
   ],
   tv: [
     { name: 'VidSrc Pro',  url: (id,s,e) => `https://vidsrc.to/embed/tv/${id}/${s}/${e}` },
-    { name: 'VidSrc.xyz',  url: (id,s,e) => `https://vidsrc.xyz/embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
-    { name: 'SmashyStream',url: (id,s,e) => `https://embed.smashystream.com/playere.php?tmdb=${id}&season=${s}&episode=${e}` },
-    { name: 'VidSrc.me',   url: (id,s,e) => `https://vidsrc.me/embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
+    { name: 'VidSrc.me',   url: (id,s,e) => `https://vidsrcme.ru/embed/tv?tmdb=${id}&season=${s}&episode=${e}` },
+    { name: 'VidSrc.pm',   url: (id,s,e) => `https://vidsrc.pm/embed/tv/${id}/${s}/${e}` },
     { name: 'AutoEmbed',   url: (id,s,e) => `https://autoembed.co/tv/tmdb/${id}-${s}-${e}` },
     { name: 'VidLink',     url: (id,s,e) => `https://vidlink.pro/tv/${id}/${s}/${e}` },
     { name: '2Embed',      url: (id,s,e) => `https://www.2embed.cc/embedtv/${id}&s=${s}&e=${e}` },
-    { name: 'EmbedSu',     url: (id,s,e) => `https://embed.su/embed/tv/${id}/${s}/${e}` },
+    { name: 'AnyEmbed',    url: (id,s,e) => `https://anyembed.xyz/embed/tmdb-tv-${id}-${s}-${e}` },
   ],
 };
