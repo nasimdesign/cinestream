@@ -52,9 +52,6 @@
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         Watch Now
       </a>
-      <button class="btn-add-list" id="heroAddList" title="Add to My List">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
-      </button>
       <a href="#" class="btn-info" id="heroInfo">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="8"/><line x1="12" y1="12" x2="12" y2="16"/></svg>
         More Info
@@ -324,10 +321,12 @@ async function showHero(idx) {
 
   // Add to watchlist button functionality
   const addBtn = document.getElementById('heroAddList');
-  addBtn.onclick = (e) => {
-    e.preventDefault();
-    addToWatchlist(m);
-  };
+  if (addBtn) {
+    addBtn.onclick = (e) => {
+      e.preventDefault();
+      addToWatchlist(m);
+    };
+  }
   
   document.querySelectorAll('.hero-dot').forEach((d,i) => d.classList.toggle('active', i===idx));
 }
